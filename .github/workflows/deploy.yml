@@ -34,7 +34,8 @@ jobs:
         run: mvn clean package
 
       - name: Run Main.java to generate dist/
-        run: java -cp target/classes com.ssg.Main
+        run: java -cp "target/classes:lib/ssmp.jar" com.ssg.Main
+
 
       - name: Deploy dist/ to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
