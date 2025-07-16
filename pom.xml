@@ -34,14 +34,26 @@
             </plugin>
 
             <!-- Exec plugin to run your Main class with correct classpath -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <mainClass>com.ssg.Main</mainClass>
-                </configuration>
-            </plugin>
+           <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <executions>
+                      <execution>
+                        <goals>
+                          <goal>java</goal>
+                        </goals>
+                      </execution>
+                    </executions>
+                    <configuration>
+                      <mainClass>com.ssg.Main</mainClass>
+                      <classpathScope>runtime</classpathScope>
+                      <includePluginDependencies>true</includePluginDependencies>
+                      <additionalClasspathElements>
+                        <additionalClasspathElement>${project.basedir}/lib/ssmp-1.0.1.jar</additionalClasspathElement>
+                      </additionalClasspathElements>
+                    </configuration>
+                  </plugin>
         </plugins>
     </build>
 </project>
