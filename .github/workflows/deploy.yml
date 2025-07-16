@@ -35,9 +35,10 @@ jobs:
 
       - name: Run Main.java to generate dist/
         run: mvn exec:java
-
+        
       - name: Deploy dist/ to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
           publish_dir: ./dist
+
