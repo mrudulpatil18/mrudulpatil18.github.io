@@ -8,10 +8,15 @@ on:
 
 permissions:
   contents: read
-  packages: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +31,6 @@ jobs:
 
       - name: Check Java and Maven version
         run: |
-          echo "JAVA_HOME=$JAVA_HOME"
           java -version
           mvn -v
 
@@ -35,11 +39,20 @@ jobs:
 
       - name: Run Main.java to generate dist/
         run: mvn exec:java
-        
-      - name: Deploy dist/ to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          personal_token: ${{ secrets.PERSONAL_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
 
+      - name: Upload dist/ as artifact for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
