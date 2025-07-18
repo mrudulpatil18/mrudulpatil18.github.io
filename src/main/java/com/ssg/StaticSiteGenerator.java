@@ -68,7 +68,7 @@ public class StaticSiteGenerator {
             if (postFiles == null) return;
 
             // Create posts output directory
-            Files.createDirectories(Paths.get(outputDir));
+            Files.createDirectories(Paths.get(outputDir+ "/posts"));
 
             for (File postFile : postFiles) {
                 String markdown = Files.readString(postFile.toPath());
@@ -93,9 +93,10 @@ public class StaticSiteGenerator {
                 replacements.put("blog_list", ""); // Empty for individual pages
 
                 String renderedHtml = processTemplate("base.html", replacements);
+                String updatedRenderedHtml = renderedHtml.replace("static", "../static");
 
                 String outputName = postFile.getName().replace(".md", ".html");
-                writeFile(outputDir + "/" + outputName, renderedHtml);
+                writeFile(outputDir + "/posts/" + outputName, updatedRenderedHtml);
                 System.out.println("Generated: posts/" + outputName);
             }
 
@@ -150,7 +151,7 @@ public class StaticSiteGenerator {
                 String fileName = postFile.getName().replace(".md", ".html");
 
                 blogList.append("  <article class=\"blog-preview\">\n");
-                blogList.append("    <h3><a href=\"/posts/" + fileName + "\">" + title + "</a></h3>\n");
+                blogList.append("    <h3><a href=\"/posts/" + fileName.replace(".html", "") + "\">" + title + "</a></h3>\n");
                 blogList.append("    <p class=\"meta\"><small>" + date + "</small></p>\n");
                 blogList.append("  </article>\n");
             }
