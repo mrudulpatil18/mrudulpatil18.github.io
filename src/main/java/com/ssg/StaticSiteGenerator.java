@@ -93,7 +93,7 @@ public class StaticSiteGenerator {
                 replacements.put("blog_list", ""); // Empty for individual pages
 
                 String renderedHtml = processTemplate("base.html", replacements);
-                String updatedRenderedHtml = renderedHtml.replace("static", "../static");
+                String updatedRenderedHtml = renderedHtml.replace("static", "../../static");
 
                 String outputName = postFile.getName().replace(".md", "");
                 writeFile(outputDir + "/posts/" + outputName + "/index.html", updatedRenderedHtml);
