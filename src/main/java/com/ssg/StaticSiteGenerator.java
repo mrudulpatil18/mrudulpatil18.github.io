@@ -95,8 +95,8 @@ public class StaticSiteGenerator {
                 String renderedHtml = processTemplate("base.html", replacements);
                 String updatedRenderedHtml = renderedHtml.replace("static", "../static");
 
-                String outputName = postFile.getName().replace(".md", ".html");
-                writeFile(outputDir + "/posts/" + outputName, updatedRenderedHtml);
+                String outputName = postFile.getName().replace(".md", "");
+                writeFile(outputDir + "/posts/" + outputName + "/index.html", updatedRenderedHtml);
                 System.out.println("Generated: posts/" + outputName);
             }
 
