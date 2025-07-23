@@ -4,6 +4,7 @@ import com.ssmp.parser.MarkdownParser;
 import com.ssmp.renderer.HTMLRenderer;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
 
@@ -71,6 +72,7 @@ public class StaticSiteGenerator {
             Files.createDirectories(Paths.get(outputDir+ "/posts"));
 
             for (File postFile : postFiles) {
+
                 String markdown = Files.readString(postFile.toPath());
 
                 Map<String, String> metadata = MarkdownMetadataExtractor.extractMetadata(markdown);
@@ -98,11 +100,25 @@ public class StaticSiteGenerator {
                 String outputName = postFile.getName().replace(".md", "");
                 writeFile(outputDir + "/posts/" + outputName + "/index.html", updatedRenderedHtml);
                 System.out.println("Generated: posts/" + outputName);
+
+                // get images
+                processImages(outputName);
             }
 
         } catch (Exception e) {
             System.err.println("Error generating blog posts: " + e.getMessage());
         }
+    }
+
+    private void processImages(String fileName) throws Exception {
+        URL postsUrl = getClass().getResource("/content/posts/images");
+        if (postsUrl == null) {
+            throw new FileNotFoundException("Resource folder /content/posts not found.");
+        }
+        Path sourcePath = Paths.get(postsUrl.toURI()).resolve(fileName);
+        Path targetPath = Paths.get(outputDir, "posts", fileName);
+
+        copyDirectoryContents(sourcePath, targetPath);
     }
 
     private String generateBlogList() throws IOException {

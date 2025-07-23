@@ -183,3 +183,7 @@ h3::before {
   margin-top: -1rem;
 }
 
+figure img{
+  border-radius: 0.2rem;
+}
+

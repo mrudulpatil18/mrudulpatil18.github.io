@@ -175,7 +175,7 @@ div.epigraph > blockquote > footer > cite {
 
 blockquote {
     font-size: 1.4rem;
-    border-left: 0.4rem solid var(--dark-accent-color);
+    border-left: 0.4rem solid var(--accent-color);
     padding: 0 0 0 1rem;
 }
 

@@ -46,6 +46,8 @@ Here's a quick rundown of the algorithm:
 
 - The walk phase repeats from this newly connected cell. This entire process continues until no more unvisited cells can be found in hunt phase, meaning the maze is complete.
 
+![Hunt & Kill Algorithm Visualised](Hunt-Kill.png)
+
 In my current implementation, I search for the longest path from the start point in the generated maze to determine the target cell.
 
 Here's a snippet of maze generation logic:
@@ -149,13 +151,13 @@ I wanted to implement a room creation and joining, much like popular web-based m
 Finally, when a player leaves the lobby or room, `afterConnectionClosed` gracefully closes the socket connection, and the room is removed from memory.
 
 
-*For a detailed look at the implementation, take a look at the source code at [GitHub](link)*.
+*For a detailed look at the implementation, take a look at the source code at [GitHub](https://github.com/mrudulpatil18/moon-rift)*.
 
 ### Visuals: From 2D to Isometric Magic
 
 I built the initial game loop using TypeScript and Canvas. My first thought was a simple 2D maze, and I got something like this working:
 
-< img >
+![Maze Prototype](first.png)
 
 I was pretty happy with it, but I really wanted to bring a 3D element to the game to make it feel more alive and aesthetically pleasing. While scrolling through Google Images for inspiration, an isometric view maze caught my eye. Visualizing paths in an isometric style would add another dimension to my game while looking incredibly cool.
 
@@ -165,14 +167,14 @@ However, I ran into a challenge: my grids were "thin-walled." This means my back
 
 Ultimately, I decided to create a layer in the frontend to **convert coordinates from the thick-walled (visual) version to the thin-walled (backend) version** before communicating with the server. I battled a bunch of wacky bugs and issues during this process, but finally got it working!
 
-![img](link)
+![3d Maze](second.png)
 
 
 Everything was working, but I still wasn't completely satisfied. The game felt competitive, it worked, and it looked good in 3D. What it needed was a cool fantasy wrapper. I was deep in unfamiliar waters, having never worked with Canvas, sockets, or isometric games before.
 
-Scrolling through more isometric games for inspiration, I loved how some were decorated visually with assets and tiles, creatively using isometric layers. After scouring the internet, I found these beautiful **isometric assets** [https://www.google.com/search?q=link].
+Scrolling through more isometric games for inspiration, I loved how some were decorated visually with assets and tiles, creatively using isometric layers. After scouring the internet, I found these beautiful [**isometric assets**](https://itch.io/c/3283012/moon-asset-collection).
 
-To use them, I had to change a ton of my implementation to utilize tiles instead of cubes for creating the maze and its surrounding environment. The start cell became a **MAGE/WIZARD**, and the goal was to reach a towering structure.
+To use them, I had to change a ton of my implementation to utilize tiles instead of cubes for creating the maze and its surrounding environment. The start cell became a **Mage / Wizard**, and the goal was to reach a towering structure.
 
 Another tough challenge was keeping the map centered on the screen and ensuring the entire maze was visible at all times. After a lot of trial and error and some math, I ended up with a decent camera implementation to handle it. I initially planned to allow zooming in and out and moving around the tilemap with a mouse, but I decided to scrap that for now.
 
@@ -180,8 +182,11 @@ I even added a few animations for fun (though, full disclosure, they’re still 
 
 Here's how it looks now:
 
-![img](link)
+![Final Maze design](third.png)
 
+Oh and i did add a title screen too !
+
+![Game title screen](title.png)
 
 ### Lore: Welcome to MoonRift!
 
@@ -206,5 +211,5 @@ I didn't go into too much detail about most of the technical implementation in t
 
 I hope you had fun reading this and maybe even found some inspiration from my rookie self!
 
-Cheers,
+Cheers,\
 Mrudul
