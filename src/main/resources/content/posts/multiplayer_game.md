@@ -5,55 +5,50 @@ date: 2025-05-14
 
 # Building a Multiplayer Maze Game
 
-I have always been a little curious on how socket programming works. I had only worked with HTTP based connections till this point. I was intrigued by how low latency games handle communcation. Thats when i read about sockets. Many attempts to understand how they work and how to use websockets went in vain as i got intimated.
+I've always been curious about how socket programming works. Up until then, my experience was limited to HTTP-based connections, and I was intrigued by how low-latency games handled communication. That's when I stumbled upon sockets. Despite several attempts to grasp how they work and how to use WebSockets, I kept getting intimidated.
 
 ## Background
 
-That's when i decided, I am going to make a multiplayer game based on sockets. Now this is a time, when i had become too dependent on LLMs and ChatGPT for writing code or solving problems.
+That's when i decided, I was going to build a multiplayer game powered by sockets. At this point, I'd become a bit too reliant on LLMs and ChatGPT for writing code or solving problems, so i set some personal ground rules:
 
-So i set a few rules for myself. 
+- **No LLMs or AI generators:** Good old google was my only allowed companion.
 
-- No using ChatGpt or LLM generators, can use good old google search for help
+- **Minimal Libraries:** I'd build everything from ground up, focusing on fundamentals.
 
-- Using minimal libraries, try to write from fundamentals.
+### The Concept - A Race Through Shifting Mazes
 
+After some thought and brainstorming, I landed on a game loop.
+It needed to be **multiplayer, competitive and, of course, involve mazes.** The core idea was navigating from a start to an end position in *maze*-like environment, complete with misleading paths.
 
-### The Concept
+Initially, i struggled to visualize how two players could compete and have fun solving the same maze together, so i had to tweak the concept.
 
-With a bit of thought and brainstorming, I came up with a game loop.
-It had to involve multiplayer, competitiveness and Mazes. Mazes would involve going from a start position to end position in a *mazelike* environment, with multiple misleading paths at regular intervals.
-I couldn't visualise how multiple players ( lets keep it at 2 players for simplicity. ) can compete and have fun trying to solve the same maze together.
+Both players would start with **randomly generated mazes of a fixed size** (say, 5x5). It would be a race to complete a set number of mazes. When a player finishes a maze, a new, larger maze (of higher dimension) would be generated for them. **The first player to clear the final maze** (let's say maze 10) **wins!**
 
-So, I decided, both players would start with mazes (randomly generated) of a fixed size (say 5 ). It would be a race to finish a fixed number of mazes. When a player completes a maze, a maze grid of higher dimension is generated. The first person to finish the final maze (say 10) **wins**.
-
-To keep the multiplayer feel alive, i added a twist. Everytime a player finishes a maze and a new bigger maze is generated, the maze of the opponent player resets. Now this should add a multiplayer feel. Now its not just a a race to the end, but also involves sabotaging the opponent on each completion.
+To amplify the multiplayer feel, i added a twist: every time a player finishes a maze and a new, bigger one is generated for them, the opponent's current maze resets. This wasn't just about racing anymore; it also introduced an element of *"sabotage"* with each completion.
 
 ### Tech Stack
 
-My proffesional work involved working with Java and Spring Boot. So i went ahead with Java for the server side logic implentation to handle multiplayer logic and maze generation. For the visual part of the game, i decided to go with browser based game for easy access. My self-established rules obliged me to use HTML, CSS and JS-Canvas to implement the UI.
+Professionaly, I work with **Java and Spring Boot.** So it was a natural choice server-side logic, handling multiplayer communication and maze generation. For the visual aspect, i opted for **a browser-based game** for easy access. My self-imposed rules meant I'd be using **HTML, CSS and JS-Canvas** to implement the UI.
 
-## Implementation
+## Implementation - Bringing the Maze to Life
 
-### Maze Generation
+### Maze Generation - The Hunt-and-Kill Approach
 
-There are multiple maze generation algorithms available on the internet. They have their own biases. Hunt-and-Kill algorithm was decided to keep bais minimal with our context and generate visually asthetic mazes.
+There are tons of maze generation algorithms out there, each with its own biases. To keep things visually appealing and minimize bias in our context, I settled on the **Hunt-and-Kill algorithm**.
 
+Here's a quick rundown of the algorithm:
 
-Algorithm:
+- **Choose a random cell** in the grid.
 
-Choose a random point in the grid as the start cell.
+- **Walk Phase:** From the current cell, randomly select an unvisited neighbor and move to it. Repeat this process until you reach a cell with no unvisited neighbors.
 
-- Walk Phase:
-  From the start cell, random neighour is chosen as next cell and this process repeats until a cell is reached with no unvisited neighbours.
+- **Hunt Phase:** Find a cell in the grid that has at least one unvisited neighbor. Connect this "hunted" cell to one of its visited neighbors.
 
-- Hunt Phase:
-  Choose a cell in the grid with atleast one unvisited neighbour. Connect the cell and an univited neighbour to this cell.
+- The walk phase repeats from this newly connected cell. This entire process continues until no more unvisited cells can be found in hunt phase, meaning the maze is complete.
 
-The walk phase repeats from the chosen cell from hunt cell. This process is repeated until, no more univisted cells are found in hunt phase.
+In my current implementation, I search for the longest path from the start point in the generated maze to determine the target cell.
 
-In current implementation, the longest path from the start point in the maze is searched to decide the finish cell in the maze.
-
-Code:
+Here's a snippet of maze generation logic:
 
 ```
 Maze generateMaze(int width, int height, Coordinate startCoordinate) {
@@ -108,15 +103,14 @@ Maze generateMaze(int width, int height, Coordinate startCoordinate) {
     }
 ```
 
-Great, we can now generate mazes on any size. Lets look at the aim of the project, to tackle socket communications.
+Awesome! Now that we can generate mazes of any size, let's get to the core of this project: **socket communication**.
 
-### Sockets
+### Sockets: multiplayer holy grail
 
-I decided to utlize WebSockets made available by spring framework.
+I decided to utilize WebSockets, conveniently available through The Spring Framework.
 
-We need to setup configuration bean with `@EnableWebSocket` which implements `WebSocketConfigurer` interface. This interface helps register webSocketHandlers with required path mapping.
+First, we need to setup a configuration bean with `@EnableWebSocket` which implements `WebSocketConfigurer` interface. This interface is key for registering `WebSocketHandler` with necessary path mapping.
 
-Code:
 ```
 @Configuration
 @EnableWebSocket
@@ -131,71 +125,67 @@ public class WebSocketConfig implements WebSocketConfigurer {
 }
 ```
 
-We also need to setup a `WebSocketHandler` spring bean using `WebSocketHandler` Interface.
+Next, we also need to setup a `WebSocketHandler` Spring bean using `WebSocketHandler` Interface.This interface provids several useful methods:
 
-Methods provided by interface
+- `afterConnectionEstablished(WebSocketSession session)`: Called after a new WebSocket session has been established.
 
-- `afterConnectionEstablished(WebSocketSession session)`: This method is called after a new WebSocket session has been established.
+- `handleTextMessage(WebSocketSession session, TextMessage message)`: Handles incoming text messages.
 
-- `handleTextMessage(WebSocketSession session, TextMessage message)`: This method handles incoming text messages.
+- `handleBinaryMessage(WebSocketSession session, BinaryMessage message)`: Handles binary messages. (not required as we'll prefer text-based communication )
 
-- `handleBinaryMessage(WebSocketSession session, BinaryMessage message)`: This method handles binary messages.( NOT Required as we'll be using text based communication )
-
-- `afterConnectionClosed(WebSocketSession session, CloseStatus status)`: This method is invoked after a WebSocket session has been closed.
+- `afterConnectionClosed(WebSocketSession session, CloseStatus status)`: Invoked after a WebSocket session has been closed.
 
 
 
-I wanted to implement a room creation and joining logic like how popular web-based multiplayer games like SmashKarts, AmongUs and Scribble handle it. To achieve that, we create rooms with uuid based unique 5 digit codes and assign socket conenctions to the room.
+I wanted to implement a room creation and joining, much like popular web-based multiplayer games such as SmashKarts, AmongUs and Scribble. To achieve this, we create rooms with unique 5-digit UUID-based codes and assign socket connections to the room.
 
-- On CREATE Room -> a new room is created and the player's socket connection is added to the room as first player using `afterConnectionEstablished` and a unique room code is returned.
+- **On CREATE Room:** A new room is created and the player's socket connection is added as first player using `afterConnectionEstablished`. A unique room code is returned to the client.
 
-- On JOIN Room -> the room is joined based on code entered and socket connection is added to the room as second player using `afterConnectionEstablished`
-
-
-`handleTextMessage` is utilised to communicate states between frontend and this server. Changes like player moves are sent and are verified by backend, and on completion of mazes or game start, generated mazes are communicated back to frontend by serializing and deserialing to JSON.
-
-When a player leaves the lobby / room, `afterConnectionClosed` closes the opponents socket connection and deletes the room from memory.
+- **On JOIN Room:** The room is joined based on entered code and socket connection is added as the second player using `afterConnectionEstablished`.
 
 
-*for a detailed view at implementation , take take a look at the source code at [github](link)*
+`handleTextMessage` is crucial for communicating game states between frontend and the server. Changes like player moves are sent to the backend for verification. Upon completion of maze or Game start, generated mazes are serialized into JSON and sent back to frontend.
+
+Finally, when a player leaves the lobby or room, `afterConnectionClosed` gracefully closes the socket connection, and the room is removed from memory.
 
 
-### Visuals
+*For a detailed look at the implementation, take a look at the source code at [GitHub](link)*.
 
-I established a game loop with typescript using canvas,
-Initially , I had planned to make a simple 2d maze, and this is what i had achieved.
+### Visuals: From 2D to Isometric Magic
+
+I built the initial game loop using TypeScript and Canvas. My first thought was a simple 2D maze, and I got something like this working:
 
 < img >
 
-I was pretty happy with what i had, but i wannted to implement 3D somehow to the game,to make it more alive and asthetic. While scrolling through google images for inspiration, i saw an isometric view maze and it caught my attention. Visualising paths in isometric would add another dimension to my game, while making it look good at the same time.
+I was pretty happy with it, but I really wanted to bring a 3D element to the game to make it feel more alive and aesthetically pleasing. While scrolling through Google Images for inspiration, an isometric view maze caught my eye. Visualizing paths in an isometric style would add another dimension to my game while looking incredibly cool.
 
-I went in a rabit hole to understand the maths behind isometric games and how i would use it. I made a isometric based ( 3d-like ) visuals to the maze by creating isometric 3d blocks and laying them up in the maze form.
+I dove down a rabbit hole to understand the math behind isometric games and how to implement it. I then created isometric (3D-like) visuals for the maze by building isometric 3D blocks and arranging them to form the maze.
 
-I did have a challenge in the process though...  My grids were thin walled. what that means is, in a grid representation, i used to represent only the cells which are walkable. for isometric view i had to convert my thin wallled mazes to thick walled (walls are made up of blocks ). I faced a dilemma, should i conevert my backend to work with, generate and understand thick walled mazes or do i keep in the frontend only for visualisation. But it changed things as moves made by player in thick walled maze would mean different thing in thin walled as it is effectively twice the grid size.
+However, I ran into a challenge: my grids were "thin-walled." This means my backend maze representation only tracked walkable cells. For an isometric view, I needed to convert these to "thick-walled" mazes, where walls are explicitly made of blocks. I faced a dilemma: should I convert my backend to understand and generate thick-walled mazes, or keep it as a frontend-only visualization? The problem was that player moves in a thick-walled maze would mean something different in a thin-walled one, effectively doubling the grid size.
 
-I decided to create a layer in the frontend to conevert coordinates from thick walled to thin walled version before communicating with backend. I faced a bunch of wacky bugs and issues in this process, but finally got it working.
+Ultimately, I decided to create a layer in the frontend to **convert coordinates from the thick-walled (visual) version to the thin-walled (backend) version** before communicating with the server. I battled a bunch of wacky bugs and issues during this process, but finally got it working!
 
 ![img](link)
 
 
-Everthing works now, i was still not satisfied, it feels competitive, it works and it looks 3d and good. I wanted to wrap it up in some sort of cool fantasy game. I was deep in unfamiliar waters, never having worked with canvas or sockets or isometric games for that matter..
+Everything was working, but I still wasn't completely satisfied. The game felt competitive, it worked, and it looked good in 3D. What it needed was a cool fantasy wrapper. I was deep in unfamiliar waters, having never worked with Canvas, sockets, or isometric games before.
 
-Scrolling through isometric games for inspiration i really liked how some games decorating it visually with help of assests and tiles and creatively using isometric layers. On scouring the internet i found these beautiful isometric (assests)[link].
+Scrolling through more isometric games for inspiration, I loved how some were decorated visually with assets and tiles, creatively using isometric layers. After scouring the internet, I found these beautiful **isometric assets** [https://www.google.com/search?q=link].
 
-To use it , had to change a ton of implementation to utilize tiles insted of cubes to create a maze and the surroudning environment, the start cell was a MAGE / WIZARD now , and the goal was to reach the tower.
+To use them, I had to change a ton of my implementation to utilize tiles instead of cubes for creating the maze and its surrounding environment. The start cell became a **MAGE/WIZARD**, and the goal was to reach a towering structure.
 
-Another tough challenge in this process was to keep the map in the center of screen and make sure all of the maze is visible at a time. After a lot of failing and maths, i ended up with a decent camera implementation to deal with it. I did plan to allow zooming in and out and moving around the tilemap with a mouse, but discarded it later.
+Another tough challenge was keeping the map centered on the screen and ensuring the entire maze was visible at all times. After a lot of trial and error and some math, I ended up with a decent camera implementation to handle it. I initially planned to allow zooming in and out and moving around the tilemap with a mouse, but I decided to scrap that for now.
 
-I also added a bit of animations for fun. ( PS. they are still buggy )
+I even added a few animations for fun (though, full disclosure, they’re still a bit buggy!).
 
 Here's how it looks now:
 
 ![img](link)
 
 
-### Lore
+### Lore: Welcome to MoonRift!
 
-With all the cool game-like visuals, its absolutely essential (in my eyes ) for the game to have a cool lore.
+With all these cool, game-like visuals, it was absolutely essential (in my eyes) for the game to have some awesome lore.
 
 Introducing **MoonRift**
 
@@ -204,236 +194,17 @@ Introducing **MoonRift**
 > First to Level 10 saves their world. The other is lost to darkness.
 
 
-### Learning
+### Lessons Learned: The Journey was the reward
 
-Lots of cleaning up and bug fixes later. I deployed the project. I learnt lot many things through the adventure. From sockets, to canvas to communication protocols etc. But the truth is I got tired towards the end. Why ? Writing the UI. Working on the visual part of the game was much much more and time consuming than the multiplayer backend, which was intented goal anyways.
+After a lot of cleaning up and bug fixes, I finally deployed the project. I learned so many things throughout this adventure, from sockets and Canvas to communication protocols. But honestly, I got pretty tired towards the end. Why? **Building the UI**. Working on the visual part of the game ended up being far more time-consuming than the multiplayer backend, which was my initial focus.
 
-To be clear, it was still absolutely worth it and lots of fun.
+To be clear, it was still absolutely worth it and a ton of fun!
 
-The current state of game is - *playable*. Lots of improvements are required to make it polished. But i am done with it for now. I would  love to visit it later and improve it. If you as viewer want to add or fix somthing, feel free to fork and contribute to the project however you want.
+The game's current state is "playable." It definitely needs more improvements to be polished, but I'm done with it for now. I'd love to revisit it later and make it even better. If you, the reader, want to add something or fix a bug, feel free to fork and contribute to the project however you like!
 
-I did not go into too much detail about most of the technical implementation for this post. Also most of the developement of backend and ui happened parallely, i have made it seem linear for simplicity of understanding. Lots and lots of work went into the coding the game from strach in canvas without any libraries or past experience.
+I didn't go into too much detail about most of the technical implementation in this post, and while I made the development seem linear for simplicity, much of the backend and UI work happened in parallel. A tremendous amount of effort went into coding this game from scratch in Canvas without any libraries or prior experience.
 
-I hope you had fun reading this and get inspired from my rookie-self.
+I hope you had fun reading this and maybe even found some inspiration from my rookie self!
 
 Cheers,
 Mrudul
-
-
-
-# placeholder title
-
-I have always been a little curious on how socket programming works. I had only worked with HTTP based connections till this point. I was intrigued by how low latency games handle communcation. Thats when i read about sockets. Many attempts to understand how they work and how to use websockets went in vain as i got intimated.
-
-## Background
-
-That's when i decided, I am going to make a multiplayer game based on sockets. Now this is a time, when i had become too dependent on LLMs and ChatGPT for writing code or solving problems.
-
-So i set a few rules for myself.
-1. No using ChatGpt or LLM generators, can use good old google search for help
-2. Using minimal libraries, try to write from fundamentals.
-
-
-### The Concept
-
-With a bit of thought and brainstorming, I came up with a game loop.
-It had to involve multiplayer, competitiveness and Mazes. Mazes would involve going from a start position to end position in a *mazelike* environment, with multiple misleading paths at regular intervals.
-I couldn't visualise how multiple players ( lets keep it at 2 players for simplicity. ) can compete and have fun trying to solve the same maze together.
-
-So, I decided, both players would start with mazes (randomly generated) of a fixed size (say 5 ). It would be a race to finish a fixed number of mazes. When a player completes a maze, a maze grid of higher dimension is generated. The first person to finish the final maze (say 10) **wins**.
-
-To keep the multiplayer feel alive, i added a twist. Everytime a player finishes a maze and a new bigger maze is generated, the maze of the opponent player resets. Now this should add a multiplayer feel. Now its not just a a race to the end, but also involves sabotaging the opponent on each completion.
-
-### Tech Stack
-
-My proffesional work involved working with Java and Spring Boot. So i went ahead with Java for the server side logic implentation to handle multiplayer logic and maze generation. For the visual part of the game, i decided to go with browser based game for easy access. My self-established rules obliged me to use HTML, CSS and JS-Canvas to implement the UI.
-
-## Implementation
-
-### Maze Generation
-
-There are multiple maze generation algorithms available on the internet. They have their own biases. Hunt-and-Kill algorithm was decided to keep bais minimal with our context and generate visually asthetic mazes.
-
-
-Algorithm:
-
-Choose a random point in the grid as the start cell.
-
-- Walk Phase:
-  From the start cell, random neighour is chosen as next cell and this process repeats until a cell is reached with no unvisited neighbours.
-
-- Hunt Phase:
-  Choose a cell in the grid with atleast one unvisited neighbour. Connect the cell and an univited neighbour to this cell.
-
-The walk phase repeats from the chosen cell from hunt cell. This process is repeated until, no more univisted cells are found in hunt phase.
-
-In current implementation, the longest path from the start point in the maze is searched to decide the finish cell in the maze.
-
-Code:
-
-```
-Maze generateMaze(int width, int height, Coordinate startCoordinate) {
-        Coordinate currentCell = startCoordinate;
-        Set<Coordinate> visited = new HashSet<>();
-        Set<Coordinate> nonVisited = initializeNonVisited(width, height);
-        Maze maze = new Maze(width, height);
-
-        
-        if(startCoordinate == null){
-            currentCell = getRandomCell(width, height);
-        }
-
-        // Start from random cell
-        maze.setStart(currentCell);
-        visited.add(currentCell);
-        nonVisited.remove(currentCell);
-
-        while (!nonVisited.isEmpty()) {
-            // Walk phase - keep walking until no unvisited neighbors
-            while (true) {
-                List<Coordinate> unvisitedNeighbors = getUnvisitedNeighbors(maze, currentCell, visited);
-                if (unvisitedNeighbors.isEmpty()) {
-                    break;
-                }
-                
-                Coordinate nextCell = getRandomElement(unvisitedNeighbors);
-                maze.carveEdge(currentCell, nextCell);
-                visited.add(nextCell);
-                nonVisited.remove(nextCell);
-                currentCell = nextCell;
-            }
-
-            // Hunt phase - find an unvisited cell with at least one visited neighbor
-            Coordinate huntResult = hunt(maze, nonVisited, visited);
-            if (huntResult == null) {
-                break; // No valid cells found during hunt - maze is complete
-            }
-            
-            // Connect the hunted cell to a random visited neighbor
-
-            List<Coordinate> visitedNeighbors = getVisitedNeighbors(maze, huntResult, visited);
-            Coordinate connectTo = getRandomElement(visitedNeighbors);
-            maze.carveEdge(huntResult, connectTo);
-            
-            visited.add(huntResult);
-            nonVisited.remove(huntResult);
-            currentCell = huntResult;
-        }
-        maze.setEnd(getFarthestCellCoordinates(maze, width, height));
-        return maze;
-    }
-```
-
-Great, we can now generate mazes on any size. Lets look at the aim of the project, to tackle socket communications.
-
-### Sockets
-
-I decided to utlize WebSockets made available by spring framework.
-
-We need to setup configuration bean with `@EnableWebSocket` which implements `WebSocketConfigurer` interface. This interface helps register webSocketHandlers with required path mapping.
-
-Code:
-```
-@Configuration
-@EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
-
-    // inject WebSocketHandler bean
-
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/websocket").setAllowedOrigins("*");
-    }
-}
-```
-
-We also need to setup a `WebSocketHandler` spring bean using `WebSocketHandler` Interface.
-
-Methods provided by interface
-
-- `afterConnectionEstablished(WebSocketSession session)`: This method is called after a new WebSocket session has been established.
-
-- `handleTextMessage(WebSocketSession session, TextMessage message)`: This method handles incoming text messages.
-
-- `handleBinaryMessage(WebSocketSession session, BinaryMessage message)`: This method handles binary messages.( NOT Required as we'll be using text based communication )
-
-- `afterConnectionClosed(WebSocketSession session, CloseStatus status)`: This method is invoked after a WebSocket session has been closed.
-
-
-
-I wanted to implement a room creation and joining logic like how popular web-based multiplayer games like SmashKarts, AmongUs and Scribble handle it. To achieve that, we create rooms with uuid based unique 5 digit codes and assign socket conenctions to the room.
-
-- On CREATE Room -> a new room is created and the player's socket connection is added to the room as first player using `afterConnectionEstablished` and a unique room code is returned.
-
-- On JOIN Room -> the room is joined based on code entered and socket connection is added to the room as second player using `afterConnectionEstablished`
-
-
-`handleTextMessage` is utilised to communicate states between frontend and this server. Changes like player moves are sent and are verified by backend, and on completion of mazes or game start, generated mazes are communicated back to frontend by serializing and deserialing to JSON.
-
-When a player leaves the lobby / room, `afterConnectionClosed` closes the opponents socket connection and deletes the room from memory.
-
-
-*for a detailed view at implementation , take take a look at the source code at [github](link)*
-
-
-### Visuals
-
-I established a game loop with typescript using canvas,
-Initially , I had planned to make a simple 2d maze, and this is what i had achieved.
-
-< img >
-
-I was pretty happy with what i had, but i wannted to implement 3D somehow to the game,to make it more alive and asthetic. While scrolling through google images for inspiration, i saw an isometric view maze and it caught my attention. Visualising paths in isometric would add another dimension to my game, while making it look good at the same time.
-
-I went in a rabit hole to understand the maths behind isometric games and how i would use it. I made a isometric based ( 3d-like ) visuals to the maze by creating isometric 3d blocks and laying them up in the maze form.
-
-I did have a challenge in the process though...  My grids were thin walled. what that means is, in a grid representation, i used to represent only the cells which are walkable. for isometric view i had to convert my thin wallled mazes to thick walled (walls are made up of blocks ). I faced a dilemma, should i conevert my backend to work with, generate and understand thick walled mazes or do i keep in the frontend only for visualisation. But it changed things as moves made by player in thick walled maze would mean different thing in thin walled as it is effectively twice the grid size.
-
-I decided to create a layer in the frontend to conevert coordinates from thick walled to thin walled version before communicating with backend. I faced a bunch of wacky bugs and issues in this process, but finally got it working.
-
-![img](link)
-
-
-Everthing works now, i was still not satisfied, it feels competitive, it works and it looks 3d and good. I wanted to wrap it up in some sort of cool fantasy game. I was deep in unfamiliar waters, never having worked with canvas or sockets or isometric games for that matter..
-
-Scrolling through isometric games for inspiration i really liked how some games decorating it visually with help of assests and tiles and creatively using isometric layers. On scouring the internet i found these beautiful isometric (assests)[link].
-
-To use it , had to change a ton of implementation to utilize tiles insted of cubes to create a maze and the surroudning environment, the start cell was a MAGE / WIZARD now , and the goal was to reach the tower.
-
-Another tough challenge in this process was to keep the map in the center of screen and make sure all of the maze is visible at a time. After a lot of failing and maths, i ended up with a decent camera implementation to deal with it. I did plan to allow zooming in and out and moving around the tilemap with a mouse, but discarded it later.
-
-I also added a bit of animations for fun. ( PS. they are still buggy )
-
-Here's how it looks now:
-
-![img](link)
-
-
-### Lore
-
-With all the cool game-like visuals, its absolutely essential (in my eyes ) for the game to have a cool lore.
-
-Introducing **MoonRift**
-
-> The universe is collapsing. Only one world can survive, powered by ancient Moon Towers linked to a dying moon.
-> Two rival Moon Mages race through shifting mazes to reach their towers. Each time one powers up, the other weakens.
-> First to Level 10 saves their world. The other is lost to darkness.
-
-
-### Learning
-
-Lots of cleaning up and bug fixes later. I deployed the project. I learnt lot many things through the adventure. From sockets, to canvas to communication protocols etc. But the truth is I got tired towards the end. Why ? Writing the UI. Working on the visual part of the game was much much more and time consuming than the multiplayer backend, which was intented goal anyways.
-
-To be clear, it was still absolutely worth it and lots of fun.
-
-The current state of game is - *playable*. Lots of improvements are required to make it polished. But i am done with it for now. I would  love to visit it later and improve it. If you as viewer want to add or fix somthing, feel free to fork and contribute to the project however you want.
-
-I did not go into too much detail about most of the technical implementation for this post. Also most of the developement of backend and ui happened parallely, i have made it seem linear for simplicity of understanding. Lots and lots of work went into the coding the game from strach in canvas without any libraries or past experience.
-
-I hope you had fun reading this and get inspired from my rookie-self.
-
-Cheers,
-Mrudul
-
-
-
