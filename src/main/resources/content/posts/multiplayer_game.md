@@ -9,7 +9,7 @@ I've always been curious about how socket programming works. Up until then, my e
 
 ## Background
 
-That's when i decided, I was going to build a multiplayer game powered by sockets. At this point, I'd become a bit too reliant on LLMs and ChatGPT for writing code or solving problems, so i set some personal ground rules:
+That's when I decided, I was going to build a multiplayer game powered by sockets. At this point, I'd become a bit too reliant==I have recently observed quite a bit of loss in critical thinking ability, because of such habit. Here's a [paper](https://slejournal.springeropen.com/articles/10.1186/s40561-024-00316-7) which describes this phenomenon in detail== on LLMs and ChatGPT for writing code or solving problems, so I set some personal ground rules:
 
 - **No LLMs or AI generators:** Good old google was my only allowed companion.
 
@@ -20,21 +20,21 @@ That's when i decided, I was going to build a multiplayer game powered by socket
 After some thought and brainstorming, I landed on a game loop.
 It needed to be **multiplayer, competitive and, of course, involve mazes.** The core idea was navigating from a start to an end position in *maze*-like environment, complete with misleading paths.
 
-Initially, i struggled to visualize how two players could compete and have fun solving the same maze together, so i had to tweak the concept.
+Initially, I struggled to visualize how two players could compete and have fun solving the same maze together, so I had to tweak the concept.
 
 Both players would start with **randomly generated mazes of a fixed size** (say, 5x5). It would be a race to complete a set number of mazes. When a player finishes a maze, a new, larger maze (of higher dimension) would be generated for them. **The first player to clear the final maze** (let's say maze 10) **wins!**
 
-To amplify the multiplayer feel, i added a twist: every time a player finishes a maze and a new, bigger one is generated for them, the opponent's current maze resets. This wasn't just about racing anymore; it also introduced an element of *"sabotage"* with each completion.
+To amplify the multiplayer feel, I added a twist: every time a player finishes a maze and a new, bigger one is generated for them, the opponent's current maze resets. This wasn't just about racing anymore; it also introduced an element of *"sabotage"* with each completion.
 
 ### Tech Stack
 
-Professionaly, I work with **Java and Spring Boot.** So it was a natural choice server-side logic, handling multiplayer communication and maze generation. For the visual aspect, i opted for **a browser-based game** for easy access. My self-imposed rules meant I'd be using **HTML, CSS and JS-Canvas** to implement the UI.
+Professionally, I work with **Java and Spring Boot.** So it was a natural choice server-side logic, handling multiplayer communication and maze generation. For the visual aspect, I opted for **a browser-based game** for easy access. My self-imposed rules meant I'd be using **HTML, CSS and JS-Canvas** to implement the UI.
 
 ## Implementation - Bringing the Maze to Life
 
 ### Maze Generation - The Hunt-and-Kill Approach
 
-There are tons of maze generation algorithms out there, each with its own biases. To keep things visually appealing and minimize bias in our context, I settled on the **Hunt-and-Kill algorithm**.
+There are tons of maze generation algorithms out there==[Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm)==, each with its own biases. To keep things visually appealing and minimize bias in our context, I settled on the **Hunt-and-Kill algorithm**==Special thanks to this [article](https://weblog.jamisbuck.org/2011/1/24/maze-generation-hunt-and-kill-algorithm)==.
 
 Here's a quick rundown of the algorithm:
 
@@ -44,7 +44,7 @@ Here's a quick rundown of the algorithm:
 
 - **Hunt Phase:** Find a cell in the grid that has at least one unvisited neighbor. Connect this "hunted" cell to one of its visited neighbors.
 
-- The walk phase repeats from this newly connected cell. This entire process continues until no more unvisited cells can be found in hunt phase, meaning the maze is complete.
+- The walk phase repeats from this newly connected cell. This entire process continues until no more unvisited cells can be found in hunt phase, meaning the maze is complete.==The following diagram shows the Hunt-and-kill algorithm in action to generate a random maze.==
 
 ![Hunt & Kill Algorithm Visualised](Hunt-Kill.png)
 
@@ -109,9 +109,9 @@ Awesome! Now that we can generate mazes of any size, let's get to the core of th
 
 ### Sockets: multiplayer holy grail
 
-I decided to utilize WebSockets, conveniently available through The Spring Framework.
+I decided to utilize WebSockets==WebSockets are a communication protocol that enables full-duplex, bidirectional communication between a client and a server over a single, persistent connection. [RFC6455](https://datatracker.ietf.org/doc/html/rfc6455)==, conveniently available through The Spring Framework.
 
-First, we need to setup a configuration bean with `@EnableWebSocket` which implements `WebSocketConfigurer` interface. This interface is key for registering `WebSocketHandler` with necessary path mapping.
+First, we need to set up a configuration bean with `@EnableWebSocket` which implements `WebSocketConfigurer` interface. This interface is key for registering `WebSocketHandler` with necessary path mapping.==[Spring Websocket API](https://docs.spring.io/spring-framework/reference/web/websocket/server.html)==
 
 ```
 @Configuration
@@ -127,7 +127,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 }
 ```
 
-Next, we also need to setup a `WebSocketHandler` Spring bean using `WebSocketHandler` Interface.This interface provids several useful methods:
+Next, we also need to set up a `WebSocketHandler` Spring bean using `WebSocketHandler` Interface.This interface provides several useful methods:
 
 - `afterConnectionEstablished(WebSocketSession session)`: Called after a new WebSocket session has been established.
 
@@ -161,9 +161,9 @@ I built the initial game loop using TypeScript and Canvas. My first thought was 
 
 I was pretty happy with it, but I really wanted to bring a 3D element to the game to make it feel more alive and aesthetically pleasing. While scrolling through Google Images for inspiration, an isometric view maze caught my eye. Visualizing paths in an isometric style would add another dimension to my game while looking incredibly cool.
 
-I dove down a rabbit hole to understand the math behind isometric games and how to implement it. I then created isometric (3D-like) visuals for the maze by building isometric 3D blocks and arranging them to form the maze.
+I dove down a rabbit hole to understand the math behind isometric games==I had played a fair share of isometric games before. But this was a humbling experience, when i realised how much work goes into such games. Refer this [article](https://pikuma.com/blog/isometric-projection-in-games) to understand the Maths behind how it works.== and how to implement it. I then created isometric (3D-like) visuals for the maze by building isometric 3D blocks and arranging them to form the maze.
 
-However, I ran into a challenge: my grids were "thin-walled." This means my backend maze representation only tracked walkable cells. For an isometric view, I needed to convert these to "thick-walled" mazes, where walls are explicitly made of blocks. I faced a dilemma: should I convert my backend to understand and generate thick-walled mazes, or keep it as a frontend-only visualization? The problem was that player moves in a thick-walled maze would mean something different in a thin-walled one, effectively doubling the grid size.
+However, I ran into a challenge: my grids were "thin-walled." This means my backend maze representation only tracked walkable cells. For an isometric view, I needed to convert these to "thick-walled" mazes, where walls are explicitly made of blocks.==some random [internet exchange](https://gamedev.stackexchange.com/questions/142524/how-do-you-create-a-perfect-maze-with-walls-that-are-as-thick-as-the-other-tiles) had already solved this with for me already.== I faced a dilemma: should I convert my backend to understand and generate thick-walled mazes, or keep it as a frontend-only visualization? The problem was that player moves in a thick-walled maze would mean something different in a thin-walled one, effectively doubling the grid size.
 
 Ultimately, I decided to create a layer in the frontend to **convert coordinates from the thick-walled (visual) version to the thin-walled (backend) version** before communicating with the server. I battled a bunch of wacky bugs and issues during this process, but finally got it working!
 
@@ -172,11 +172,11 @@ Ultimately, I decided to create a layer in the frontend to **convert coordinates
 
 Everything was working, but I still wasn't completely satisfied. The game felt competitive, it worked, and it looked good in 3D. What it needed was a cool fantasy wrapper. I was deep in unfamiliar waters, having never worked with Canvas, sockets, or isometric games before.
 
-Scrolling through more isometric games for inspiration, I loved how some were decorated visually with assets and tiles, creatively using isometric layers. After scouring the internet, I found these beautiful [**isometric assets**](https://itch.io/c/3283012/moon-asset-collection).
+Scrolling through more isometric games for inspiration, I loved how some were decorated visually with assets and tiles, creatively using isometric layers. After scouring the internet==It was specially exciting to test and use various isometric assets available. Often overlooked, now I really appreciate the work done by these artists.==, I found these beautiful [**isometric assets**](https://itch.io/c/3283012/moon-asset-collection).
 
 To use them, I had to change a ton of my implementation to utilize tiles instead of cubes for creating the maze and its surrounding environment. The start cell became a **Mage / Wizard**, and the goal was to reach a towering structure.
 
-Another tough challenge was keeping the map centered on the screen and ensuring the entire maze was visible at all times. After a lot of trial and error and some math, I ended up with a decent camera implementation to handle it. I initially planned to allow zooming in and out and moving around the tilemap with a mouse, but I decided to scrap that for now.
+Another tough challenge was keeping the map centered on the screen and ensuring the entire maze was visible at all times. After a lot of trial and error and some math, I ended up with a decent camera implementation to handle it. I initially planned to allow zooming in and out and moving around the tile-map with a mouse, but I decided to scrap that for now==i keep under-appreciating the efforts that went in making the game look as interesting, smooth and snappy as possible, so here's me reminding you again==.
 
 I even added a few animations for fun (though, full disclosure, they’re still a bit buggy!).
 
@@ -184,7 +184,7 @@ Here's how it looks now:
 
 ![Final Maze design](third.png)
 
-Oh and i did add a title screen too !
+Oh, and i did add a title screen too !
 
 ![Game title screen](title.png)
 
@@ -192,7 +192,7 @@ Oh and i did add a title screen too !
 
 With all these cool, game-like visuals, it was absolutely essential (in my eyes) for the game to have some awesome lore.
 
-Introducing **MoonRift**
+Introducing **MoonRift**==Check it out at [mrudulpatil18.github.io/moon-rift/](https://mrudulpatil18.github.io/moon-rift/)==
 
 > The universe is collapsing. Only one world can survive, powered by ancient Moon Towers linked to a dying moon.
 > Two rival Moon Mages race through shifting mazes to reach their towers. Each time one powers up, the other weakens.
